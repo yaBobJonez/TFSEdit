@@ -1,7 +1,7 @@
-module TuFaireSites {
-	requires transitive javafx.controls;
-	requires transitive javafx.media;
-	requires transitive javafx.web;
-	requires eu.mihosoft.monacofx;
+module com.yabobjonez.tufairesites {
+	requires javafx.controls;
+	requires javafx.media;
+	requires javafx.web;
+	requires AceFX.TFSEdit;
 	exports com.yabobjonez.tufairesites;
 }

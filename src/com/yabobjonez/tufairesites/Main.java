@@ -3,13 +3,14 @@ package com.yabobjonez.tufairesites;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Comparator;
 
-import eu.mihosoft.monacofx.MonacoFX;
+import dev.anarchy.ace.AceEditor;
+import dev.anarchy.ace.Modes;
+import dev.anarchy.ace.Themes;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.geometry.Orientation;
@@ -35,7 +36,7 @@ import javafx.scene.web.WebView;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
-public class Main extends Application {
+public class Main extends Application { //TODO theming, builder
 	public static void main(String[] args) { launch(args); }
 	private File baseDir = null;
 	private File currFile = null;
@@ -55,7 +56,8 @@ public class Main extends Application {
 		dlgDel.setHeaderText("Удаление.");
 		TreeView<String> explorer = new TreeView<>();
 		WebView view = new WebView();
-		MonacoFX editor = new MonacoFX();
+		AceEditor editor = new AceEditor();
+		editor.setTheme(Themes.Eclipse);
 		Button btnOpen = new Button(); btnOpen.setGraphic(getIcon("open.png")); btnOpen.setOnAction(e -> {
 			this.baseDir = dlgDir.showDialog(stage);
 			if(this.baseDir!=null) explorer.setRoot(this.intlBuildTree(this.baseDir));
@@ -65,7 +67,7 @@ public class Main extends Application {
 		});
 		Button btnSave = new Button(); btnSave.setGraphic(getIcon("save.png"));btnSave.setOnAction(e -> {
 			if(this.baseDir!=null && this.currFile!=null) try {
-				Files.writeString(this.currFile.toPath(), editor.getEditor().getDocument().getText(),
+				Files.writeString(this.currFile.toPath(), editor.getText(),
 					Charset.forName("UTF-8"), StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
 			} catch(IOException exc){ System.err.println("Ошибка R/W!"); }
 		});
@@ -105,10 +107,10 @@ public class Main extends Application {
 					"<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<meta charset=\"utf-8\">\n\t\t<title></title>\n\t</head>\n\t<body>\n"
 					+"\t\t\n\t</body>\n</html>",
 					Charset.forName("UTF-8"), StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
-					editor.getEditor().setCurrentLanguage("html"); }
-				else if(f.getName().endsWith(".css")) editor.getEditor().setCurrentLanguage("css");
-				else if(f.getName().endsWith(".js")) editor.getEditor().setCurrentLanguage("javascript");
-				editor.getEditor().getDocument().setText(Files.readString(f.toPath()));
+					editor.setMode(Modes.HTML); }
+				else if(f.getName().endsWith(".css")) editor.setMode(Modes.CSS);
+				else if(f.getName().endsWith(".js")) editor.setMode(Modes.JavaScript);
+				editor.setText(Files.readString(f.toPath()));
 				explorer.setRoot(this.intlBuildTree(this.baseDir));
 			} catch(IOException exc){ System.err.println("Ошибка R/W!"); } });
 		}}); Button btnRun = new Button(); btnRun.setGraphic(getIcon("run.png")); btnRun.setOnAction(e -> {
@@ -116,8 +118,8 @@ public class Main extends Application {
 		}); Alert dlgAbout = new Alert(AlertType.INFORMATION, "", ButtonType.CLOSE);
 		dlgAbout.setTitle("О программе");
 		dlgAbout.setHeaderText("TuFaireSites Editor");
-		dlgAbout.setContentText("Версия: 1.0.0-rc\nАвтор: Михайло Стецюк (ya_Bob_Jonez)\nЛицензия: НЕ ДЛЯ РАСПРОСТРАНЕНИЯ\n\n"
-			+"Использовано:\nOpenJDK 11.0 [GPLv2+LE]\nOpenJFX 16EA [GPLv2+LE]\nMonacoFX [MIT]\nhttps://icons8.com");
+		dlgAbout.setContentText("Версия: 1.1.0-rc\nАвтор: Михайло Стецюк (ya_Bob_Jonez)\nЛицензия: НЕ ДЛЯ РАСПРОСТРАНЕНИЯ\n\n"
+			+"Использовано:\nOpenJDK 11.0 [GPLv2+CE]\nOpenJFX 16EA [GPLv2+CE]\nAceFX (orange451) [Apache2.0]\nhttps://icons8.com");
 		Button btnAbout = new Button(); btnAbout.setGraphic(getIcon("about.png")); btnAbout.setOnAction(e -> dlgAbout.show());
 		Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
 		ToolBar toolbar = new ToolBar(
@@ -125,8 +127,7 @@ public class Main extends Application {
 			btnNewF, btnNewf, btnDelete, btnSave, new Separator(Orientation.VERTICAL),
 			btnRun, spacer,
 			btnAbout
-		); editor.getEditor().setCurrentTheme("vs-dark");
-		explorer.setOnMouseClicked(e -> {
+		); explorer.setOnMouseClicked(e -> {
 			if(e.getClickCount()==2){
 				if(explorer.getSelectionModel().isEmpty()) return;
 				String file = "";
@@ -134,13 +135,13 @@ public class Main extends Application {
 					selected.getParent() != null; selected = selected.getParent()) file = File.separator + selected.getValue() + file;
 				File f = new File(this.baseDir, file);
 				if(f.isFile()){ try {
-					if(this.currFile!=null) Files.writeString(this.currFile.toPath(), editor.getEditor().getDocument().getText(),
+					if(this.currFile!=null) Files.writeString(this.currFile.toPath(), editor.getText(),
 						Charset.forName("UTF-8"), StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
 					this.currFile = f;
-					if(currFile.getName().endsWith(".html")) editor.getEditor().setCurrentLanguage("html");
-					else if(currFile.getName().endsWith(".css")) editor.getEditor().setCurrentLanguage("css");
-					else if(currFile.getName().endsWith(".js")) editor.getEditor().setCurrentLanguage("javascript");
-					editor.getEditor().getDocument().setText(Files.readString(f.toPath()));
+					if(currFile.getName().endsWith(".html")) editor.setMode(Modes.HTML);
+					else if(currFile.getName().endsWith(".css")) editor.setMode(Modes.CSS);
+					else if(currFile.getName().endsWith(".js")) editor.setMode(Modes.JavaScript);
+					editor.setText(Files.readString(f.toPath()));
 					} catch(IOException exc){ System.err.println("Ошибка R/W!"); }
 				} else if(f.isDirectory() && !explorer.getSelectionModel().getSelectedItem().getChildren().isEmpty())
 					explorer.getSelectionModel().getSelectedItem().setExpanded(!explorer.getSelectionModel().getSelectedItem().isExpanded());
@@ -152,7 +153,7 @@ public class Main extends Application {
 		VBox root = new VBox(toolbar, main);
 		Scene scene = new Scene(root, 640, 480);
 		scene.setOnKeyPressed(e -> {
-			if(e.getCode() == KeyCode.F5) view.getEngine().loadContent(editor.getEditor().getDocument().getText());
+			if(e.getCode() == KeyCode.F5) btnRun.fireEvent(new ActionEvent());
 			else if(e.getCode() == KeyCode.F6){ btnSave.fireEvent(new ActionEvent()); btnRun.fireEvent(new ActionEvent()); }
 		}); stage.setTitle("TFSEdit by ya_Bob_Jonez");
 		stage.setScene(scene);
