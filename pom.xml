@@ -40,6 +40,8 @@
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <mainClass>com.yabobjonez.tufairesites.Launcher</mainClass>
                 </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer"></transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer"></transformer>
               </transformers>
             </configuration>
           </execution>
@@ -65,6 +67,7 @@
 	  <plugin>
 	    <groupId>org.apache.maven.plugins</groupId>
 	    <artifactId>maven-dependency-plugin</artifactId>
+	    <version>3.2.0</version>
 	    <executions>
 	        <execution>
 	            <phase>prepare-package</phase>
@@ -78,6 +81,7 @@
 	  <plugin>
 	    <groupId>org.apache.maven.plugins</groupId>
 	    <artifactId>maven-jar-plugin</artifactId>
+	    <version>3.2.2</version>
 	    <configuration>
 	        <archive>
 	            <manifest>
@@ -105,7 +109,7 @@
   	</dependency>
   	<dependency>
   		<groupId>com.yabobjonez</groupId>
-  		<artifactId>acefx.tfsedit</artifactId>
+  		<artifactId>acefx-tfsedit</artifactId>
   		<version>1.0.0</version>
   	</dependency>
   </dependencies>
