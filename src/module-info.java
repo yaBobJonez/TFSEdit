@@ -1,7 +1,6 @@
 module com.yabobjonez.tufairesites {
-	requires javafx.controls;
-	requires javafx.media;
-	requires javafx.web;
-	requires AceFX.TFSEdit;
+	requires transitive javafx.controls;
+	requires transitive javafx.web;
+	requires acefx.tfsedit;
 	exports com.yabobjonez.tufairesites;
 }
