@@ -1,5 +1,5 @@
 module com.yabobjonez.tufairesites {
 	requires javafx.web;
-	requires AceFX.TFSEdit;
+	requires com.yabobjonez.acefxtfsedit;
 	exports com.yabobjonez.tufairesites;
 }
