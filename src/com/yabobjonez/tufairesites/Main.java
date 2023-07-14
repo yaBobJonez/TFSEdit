@@ -2,12 +2,12 @@ package com.yabobjonez.tufairesites;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Comparator;
-import java.util.HashMap;
 
 import dev.anarchy.ace.AceEditor;
 import dev.anarchy.ace.Modes;
@@ -25,6 +25,9 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Separator;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SplitPane;
@@ -41,18 +44,14 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontPosture;
-import javafx.scene.text.FontWeight;
 import javafx.scene.web.WebView;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-public class Main extends Application { //TODO theming, builder
+public class Main extends Application { //TODO theming, builders (image, list, etc?)
 	public static void main(String[] args) { launch(args); }
 	private File baseDir = null;
 	private File currFile = null;
@@ -87,13 +86,16 @@ public class Main extends Application { //TODO theming, builder
 			} catch(IOException exc){ System.err.println("Ошибка R/W!"); }
 		});
 		Button btnDelete = new Button(); btnDelete.setGraphic(getIcon("delete.png")); btnDelete.setOnAction(e -> { if(this.baseDir!=null){
-			if(!explorer.getSelectionModel().isEmpty() && explorer.getSelectionModel().getSelectedItem().getValue()
-			.equals(this.baseDir.getName())){
+			if(!explorer.getSelectionModel().isEmpty() && !explorer.getSelectionModel().getSelectedItem().getValue().equals(this.baseDir.getName())){
 				String file = "";
 				for(TreeItem<String> selected = explorer.getSelectionModel().getSelectedItem();
 					selected.getParent() != null; selected = selected.getParent()) file = File.separator + selected.getValue() + file;
 				try { if(dlgDel.showAndWait().get() == ButtonType.YES){
-					Files.walk(new File(this.baseDir, file).toPath()).sorted(Comparator.reverseOrder())
+					File f = new File(this.baseDir, file);
+					if(this.currFile!=null && this.currFile.equals(f)){
+						editor.setMode(Modes.Text); editor.setText("");
+						this.currFile = null;
+					} Files.walk(f.toPath()).sorted(Comparator.reverseOrder())
 						.map(Path::toFile).forEach(File::delete);
 					explorer.setRoot(this.intlBuildTree(this.baseDir));
 				}} catch(IOException exc) { System.err.println("Ошибка DW!"); }
@@ -117,7 +119,12 @@ public class Main extends Application { //TODO theming, builder
 				selected.getParent() != null; selected = selected.getParent()) file = File.separator + selected.getValue() + file;
 			File f2 = new File(this.baseDir, file); if(f2.isFile()) return;
 			dlgName.showAndWait().ifPresent(name -> { try {
+				boolean isSupported = false; for(String ln : new String[]{".html", ".css", ".js"}) if(name.endsWith(ln)) isSupported = true;
+				if(!isSupported) return;
+				if(this.currFile!=null) Files.writeString(this.currFile.toPath(), editor.getText(),
+					Charset.forName("UTF-8"), StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
 				File f = new File(f2, name); f.createNewFile();
+				this.currFile = f;
 				if(f.getName().endsWith(".html")){ Files.writeString(f.toPath(),
 					"<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<meta charset=\"utf-8\">\n\t\t<title></title>\n\t</head>\n\t<body>\n"
 					+"\t\t\n\t</body>\n</html>",
@@ -129,18 +136,22 @@ public class Main extends Application { //TODO theming, builder
 				explorer.setRoot(this.intlBuildTree(this.baseDir));
 			} catch(IOException exc){ System.err.println("Ошибка R/W!"); } });
 		}}); Button btnRun = new Button(); btnRun.setGraphic(getIcon("run.png")); btnRun.setOnAction(e -> {
-			if(this.baseDir!=null && this.currFile!=null){ view.getEngine().load(this.currFile.toURI().toString()); view.getEngine().reload(); }
-		}); Alert dlgAbout = new Alert(AlertType.INFORMATION, "", ButtonType.CLOSE);
+			if(this.baseDir!=null && this.currFile!=null) view.getEngine().load(this.currFile.toURI().toString());
+		}); MenuButton btnBuilders = new MenuButton(); btnBuilders.setGraphic(getIcon("generators.png"));
+		MenuItem mbText = new MenuItem("Текст"); mbText.setOnAction(ev -> this.builderText());
+		MenuItem mbTables = new MenuItem("Таблица"); mbTables.setOnAction(ev -> this.builderTables());
+		btnBuilders.getItems().addAll(mbText, mbTables);
+		Alert dlgAbout = new Alert(AlertType.INFORMATION, "", ButtonType.CLOSE);
 		dlgAbout.setTitle("О программе");
 		dlgAbout.setHeaderText("TuFaireSites Editor");
-		dlgAbout.setContentText("Версия: 1.2.0-rc\nАвтор: Михайло Стецюк (ya_Bob_Jonez)\nЛицензия: НЕ ДЛЯ РАСПРОСТРАНЕНИЯ\n\n"
+		dlgAbout.setContentText("Версия: 1.2.3-rc\nАвтор: Михайло Стецюк (ya_Bob_Jonez)\nЛицензия: НЕ ДЛЯ РАСПРОСТРАНЕНИЯ\n\n"
 			+"Использовано:\nOpenJDK 11.0 [GPLv2+CE]\nOpenJFX 17.0.2 [GPLv2+CE]\nAceFX (TFSEdit) [Apache2.0]\nhttps://icons8.com");
 		Button btnAbout = new Button(); btnAbout.setGraphic(getIcon("about.png")); btnAbout.setOnAction(e -> dlgAbout.show());
 		Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
 		ToolBar toolbar = new ToolBar(
 			btnOpen, btnRefresh, new Separator(Orientation.VERTICAL),
 			btnNewF, btnNewf, btnDelete, btnSave, new Separator(Orientation.VERTICAL),
-			btnRun, spacer,
+			btnRun, btnBuilders, spacer,
 			btnAbout
 		); explorer.setOnMouseClicked(e -> {
 			if(e.getClickCount()==2){
@@ -172,8 +183,9 @@ public class Main extends Application { //TODO theming, builder
 		scene.setOnKeyPressed(e -> {
 			if(e.getCode() == KeyCode.F5) btnRun.fireEvent(new ActionEvent());
 			else if(e.getCode() == KeyCode.F6){ btnSave.fireEvent(new ActionEvent()); btnRun.fireEvent(new ActionEvent()); }
-			else if(e.getCode() == KeyCode.F1) this.builderText();
-			else if(e.getCode() == KeyCode.F2) this.builderTables();
+			else if(e.getCode() == KeyCode.F9) this.builderText();
+			else if(e.getCode() == KeyCode.F11) this.builderTables();
+			else if(e.getCode() == KeyCode.F1) System.out.println(this.currFile.getAbsolutePath());
 		}); stage.setTitle("TFSEdit by ya_Bob_Jonez");
 		stage.setScene(scene);
 		stage.show();
@@ -279,21 +291,21 @@ public class Main extends Application { //TODO theming, builder
 				stV.equals("Впуклая")?"groove":"ridge"; String stI = stIV.equals("Сплошная")?"solid":stIV.equals("Пунктирная")?"dashed":stIV.equals(
 				"Точечная")?"dotted":stIV.equals("Двойная")?"double":stIV.equals("Впуклая")?"groove":"ridge";
 			String style = "."+id.getText()+" {\n"; if(borderCollapse.isSelected())style+="\tborder-collapse: collapse;\n"; if(!borderColor.getValue()
-				.equals(Color.BLACK)||borderWidth.getValue()!=1||!borderStyle.getValue().equals("Сплошная")){style+="\tborder: "+(borderWidth
-				.getValue()!=1?borderWidth.getValue()+"px ":"")+st+(!borderColor.getValue().equals(Color.BLACK)?String.format(" #%02X%02X%02X",(int)
-				(borderColor.getValue().getRed()*255),(int)(borderColor.getValue().getGreen()*255),(int)(borderColor.getValue().getBlue()*255)):"")+
-				";\n";} style+="}\n."+id.getText()+" th {\n"+(!headerColor.getValue().equals(Color.TRANSPARENT)?"\tbackground: #"+String.format(
+				.equals(Color.TRANSPARENT)||borderWidth.getValue()!=1||!borderStyle.getValue().equals("Сплошная")){style+="\tborder: "+(borderWidth
+				.getValue()!=1?borderWidth.getValue()+"px ":"")+st+(!borderColor.getValue().equals(Color.TRANSPARENT)?String.format(" #%02X%02X%02X",
+				(int)(borderColor.getValue().getRed()*255),(int)(borderColor.getValue().getGreen()*255),(int)(borderColor.getValue().getBlue()*255)):
+				"")+";\n";} style+="}\n."+id.getText()+" th {\n"+(!headerColor.getValue().equals(Color.TRANSPARENT)?"\tbackground: #"+String.format(
 				"%02X%02X%02X",(int)(headerColor.getValue().getRed()*255),(int)(headerColor.getValue().getGreen()*255),(int)(headerColor.getValue()
 				.getBlue()*255))+";\n":"")+(headerPadding.getValue()!=0.0?"\tpadding: "+headerPadding.getValue()+"px;\n":"")+"}\n."+id.getText()+" td, ."
-				+id.getText()+" th {\n"; if(!borderIColor.getValue().equals(Color.BLACK)||borderIWidth.getValue()!=1||!borderIStyle.getValue().equals(
-				"Сплошная")){style+="\tborder: "+(borderIWidth.getValue()!=1?borderIWidth.getValue()+" px":"")+stI+(!borderIColor.getValue().equals(
-				Color.BLACK)?String.format(" #%02X%02X%02X",(int)(borderIColor.getValue().getRed()*255),(int)(borderIColor.getValue().getGreen()*255),
-				(int)(borderIColor.getValue().getBlue()*255)):"")+";\n";} if(elementPadding.getValue()!=0)style+="\tpadding: "+elementPadding.getValue()
-				+"px;\n"; style+="}\n"; if(!element1Color.getValue().equals(Color.TRANSPARENT))style+="."+id.getText()+" tr:nth-child(2n){background:#"
-				+String.format("%02X%02X%02X",(int)(element1Color.getValue().getRed()*255),(int)(element1Color.getValue().getGreen()*255),(int)(
-				element1Color.getValue().getBlue()*255))+";}\n"; if(!element2Color.getValue().equals(Color.TRANSPARENT))style+="."+id.getText()+
-				" tr:nth-child(2n+1){background:#"+String.format("%02X%02X%02X",(int)(element2Color.getValue().getRed()*255),(int)(element2Color
-				.getValue().getGreen()*255),(int)(element2Color.getValue().getBlue()*255))+";}\n";
+				+id.getText()+" th {\n"; if(!borderIColor.getValue().equals(Color.TRANSPARENT)||borderIWidth.getValue()!=1||!borderIStyle.getValue()
+				.equals("Сплошная")){style+="\tborder: "+(borderIWidth.getValue()!=1?borderIWidth.getValue()+" px":"")+stI+(!borderIColor.getValue()
+				.equals(Color.TRANSPARENT)?String.format(" #%02X%02X%02X",(int)(borderIColor.getValue().getRed()*255),(int)(borderIColor.getValue()
+				.getGreen()*255),(int)(borderIColor.getValue().getBlue()*255)):"")+";\n";} if(elementPadding.getValue()!=0)style+="\tpadding: "+
+				elementPadding.getValue()+"px;\n"; style+="}\n"; if(!element1Color.getValue().equals(Color.TRANSPARENT))style+="."+id.getText()+
+				" tr:nth-child(2n){background:#"+String.format("%02X%02X%02X",(int)(element1Color.getValue().getRed()*255),(int)(element1Color.getValue()
+				.getGreen()*255),(int)(element1Color.getValue().getBlue()*255))+";}\n"; if(!element2Color.getValue().equals(Color.TRANSPARENT))style+=
+				"."+id.getText()+" tr:nth-child(2n+1){background:#"+String.format("%02X%02X%02X",(int)(element2Color.getValue().getRed()*255),(int)
+				(element2Color.getValue().getGreen()*255),(int)(element2Color.getValue().getBlue()*255))+";}\n";
 			String code = "<table class='"+id.getText()+"'>\n\t<tr>\n";for(int c=1;c<=elementCols.getValue();c++)code+="\t\t<th>H</th>\n";code+=
 				"\t</tr>\n"; for(int r=1;r<=elementRows.getValue();r++){code+="\t<tr>\n";for(int c=1;c<=elementCols.getValue();c++)code+="\t\t<td>"+
 				"A</td>\n";code+="\t</tr>\n";} code+="</table>\n";

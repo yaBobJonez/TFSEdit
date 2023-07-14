@@ -1,4 +1,36 @@
-//TODO, SIGNIFICANT
+TFSEdit Software License v1.0
+
+TuFaireSites Editor
+Copyright 2022–2023 Mykhailo Stetsiuk
+
+I. Definitions
+--------------
+	
+	The «Author(s)» refers to the legal copyright holders of this Software, as denoted in the Copyright section.
+	The «Software» refers to the work (product) distributed under this License.
+	The «License» refers to this file that denotes Your rights and obligations regarding this Software.
+	«You» and «End-User» refer to the recepient that has a Copy or uses this Software in any way for any purpose.
+	A «Copy» refers to a copy of an individual file distributed under the License or a collection of files belonging to a single distribution under the License; this includes Binaries, source code files (or extracts), this License, and any additional files provided as a part of this Software.
+	A «Binary» refers to a file or a collection of files, that is/are compiled and ready to be run on the target system.
+	A «Modification» refers to a change of any of the files protected under the License in source or binary form by the End-User. This does not include operating system induced changes of metadata as a result of reading and copying; however, this does include moving, renaming, and deleting such files.
+	A «Derivative Work» is a file or a collection of files that is/are extended upon this Software, uses extracts (parts) or the whole files belonging to this Software, or statically link to them.
+	
+II. Terms of use
+----------------
+
+	1. Utilization and Distribution
+	The Author(s) grant You a non-exclusive worldwide perpetual license to publically display, store, use, distribute, and produce Copies of the Software for any legal purpose in any medium, and practise other rights noted in this license if the following conditions are met:
+		a) Each Copy MUST have the License and a clearly stated copyright notice (attribution) included.
+		b) You MAY NOT demand a fee or propose a monetary cost for any Copy of the Software
+		b) You can and do comply with all the terms of this License.
+		
+	2. Modification
+	According to this License, you MAY make private Modifications of this Software for any legal purpose, as well as Derivative Works, provided that you meet these conditions:
+		a) Each copy of the Derivative Work MUST include a valid copyright notice of (attribute) the Authors of the original work, written either in the copyright section of the license file distributed with that work, or in a separate clearly visible to an End-User notice file that MUST be distributed along the Derivative Work if such license file is absent.
+		b) Each End-User is provided with a Copy of the original work upon a verbal or written request.
+		
+	3. Liability and Warranty
+	This Software comes as-is WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. The Author(s) of the Software MAY NOT BE HELD ACCOUNTABLE FOR ANY DAMAGES CAUSED BY THE USE OF THE SOFTWARE.
 
 ##### Libraries used #####
 	
